@@ -8,6 +8,9 @@ namespace NationalParkReservationSystem.Models
 {
     public class Site
     {
+        private string _isAccessible = "No";
+        private string _hasUtilities = "No";
+
         public int SiteId { get; set; }
         public int CampgroundId { get; set; }
         public int SiteNumber { get; set; }
@@ -20,7 +23,12 @@ namespace NationalParkReservationSystem.Models
         {
             get
             {
-				return Accessibility ? "Yes" : "No";
+                if (Accessibility == true)
+                {
+                    _isAccessible = "Yes";
+                }
+
+                return _isAccessible;
             }
         }
 
@@ -28,7 +36,12 @@ namespace NationalParkReservationSystem.Models
         {
             get
             {
-				return Utilities ? "Yes" : "No";
+                if (Utilities == true)
+                {
+                    _hasUtilities = "Yes";
+                }
+
+                return _hasUtilities;
             }
         }
     }
