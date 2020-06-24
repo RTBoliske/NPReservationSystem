@@ -10,9 +10,8 @@ namespace NationalParkReservationSystem
     {
         static void Main(string[] args)
         {
-            NationalParkReservationCLI cli = new NationalParkReservationCLI();
-
-            cli.DisplayMainMenu();
+            NPRS_CLI cli = new NPRS_CLI();
+            cli.DisplayMenu();
 
             Console.ReadKey();
         }

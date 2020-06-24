@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{461FF4F9-DCC5-4F03-81A6-F48188C33A57}</ProjectGuid>
+    <ProjectGuid>{A30CC49B-4DB3-4CD8-A52D-912B44E6F23B}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>NationalParkReservationSystem</RootNamespace>
     <AssemblyName>NationalParkReservationSystem</AssemblyName>
@@ -43,17 +43,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Menus\Menus_CLI.cs" />
+    <Compile Include="NPRS_CLI.cs" />
     <Compile Include="DAL\ParkSqlDAL.cs" />
+    <Compile Include="Helpers\HelperMethods.cs" />
     <Compile Include="Models\Campground.cs" />
     <Compile Include="Models\Park.cs" />
     <Compile Include="Models\Reservation.cs" />
     <Compile Include="Models\Site.cs" />
-    <Compile Include="NationalParkReservationCLI.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
