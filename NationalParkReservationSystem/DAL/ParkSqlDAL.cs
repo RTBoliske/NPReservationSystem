@@ -1,14 +1,11 @@
-﻿using System;
+﻿using NationalParkReservationSystem.Models;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Data.SqlClient;
-using NationalParkReservationSystem.Models;
 
 namespace NationalParkReservationSystem.DAL
 {
-    public class ParkSqlDAL
+	public class ParkSqlDAL
     {
         private string _connectionString;
 
@@ -18,10 +15,10 @@ namespace NationalParkReservationSystem.DAL
             _connectionString = connectionString;
         }
 
-        //returns list of all parks
+        //returns list of all parks in system
         public List<Park> GetParks()
         {
-            List<Park> parkList = new List<Park>();
+            List<Park> output = new List<Park>();
 
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
@@ -37,17 +34,17 @@ namespace NationalParkReservationSystem.DAL
                 {
                     Park park = PopulateParkFromReader(reader);
 
-					parkList.Add(park);
+                    output.Add(park);
                 }
             }
 
-            return parkList;
+			return output;
         }
 
         //returns list of all campgrounds for selected park
         public List<Campground> GetCampgrounds(int park_id)
         {
-            List<Campground> campgroundsList = new List<Campground>();
+            List<Campground> output = new List<Campground>();
 
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
@@ -67,17 +64,17 @@ namespace NationalParkReservationSystem.DAL
                 {
                     Campground campground = PopulateCampgroundFromReader(reader);
 
-					campgroundsList.Add(campground);
+                    output.Add(campground);
                 }
             }
 
-            return campgroundsList;
+            return output;
         }
 
-        //returns list of sites for selected campground
+        //returns list of all sites for selected campground
         public List<Site> GetSites(int campground_id)
         {
-            List<Site> campgroundSitesList = new List<Site>();
+            List<Site> output = new List<Site>();
 
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
@@ -86,7 +83,7 @@ namespace NationalParkReservationSystem.DAL
                 SqlCommand cmd = new SqlCommand();
                 cmd.CommandText = "SELECT site.site_id, site.site_number, site.max_occupancy, " +
                                   "site.accessible, site.max_rv_length, site.utilities " +
-                                  "FROM site JOIN campground ON site.campground_id = campground.campground_id " +
+                                  "FROM site Join campground ON site.campground_id = campground.campground_id " +
                                   "WHERE campground.campground_id = @campgroundID ORDER BY site.site_number";
                 cmd.Connection = connection;
                 cmd.Parameters.AddWithValue("@campgroundID", campground_id);
@@ -97,89 +94,35 @@ namespace NationalParkReservationSystem.DAL
                 {
                     Site site = PopulateSiteFromReader(reader);
 
-					campgroundSitesList.Add(site);
+                    output.Add(site);
                 }
             }
 
-            return campgroundSitesList;
+            return output;
         }
 
-		public List<Site> GetSitesWithOrWithoutReservations(int campground_id)
-		{
-			List<Site> allSitesWihtOrWithoutReservations = new List<Site>();
-
-			using (SqlConnection connection = new SqlConnection(_connectionString))
-			{
-				connection.Open();
-
-				SqlCommand cmd = new SqlCommand();
-				cmd.CommandText = "Select site.site_id, site.site_number, site.campground_id, reservation.reservation_id From site " +
-								  "Join campground on site.campground_id = campground.campground_id " +
-								  "Left Join reservation on site.site_id = reservation.site_id " +
-								  "Where site.campground_id = @campgroundID;";
-				cmd.Connection = connection;
-				cmd.Parameters.AddWithValue("@campgroundID", campground_id);
-
-				SqlDataReader reader = cmd.ExecuteReader();
-
-				while (reader.Read())
-				{
-					Site site = PopulateSiteFromReader(reader);
-
-					allSitesWihtOrWithoutReservations.Add(site);
-				}
-			}
-
-			return allSitesWihtOrWithoutReservations;
-		}
-
-		//public List<Reservation> SearchReservations(int park_id, int campground_id)
-		//{
-		//    List<Reservation> results = new List<Reservation>();
-
-		//    using (SqlConnection connection = new SqlConnection(_connectionString))
-		//    {
-		//        connection.Open();
-
-		//        SqlCommand cmd = new SqlCommand();
-		//        cmd.CommandText = "Select * From reservation " +
-		//                          "Join site on reservation.site_id = site.site_id " +
-		//                          "Join campground on site.campground_id = campground.campground_id " +
-		//                          "Join park on campground.park_id = park.park_id " +
-		//                          "Where park.park_id = @parkID And campground.campground_id = @campgroundID";
-		//        cmd.Connection = connection;
-		//        cmd.Parameters.AddWithValue("@campgroundID", campground_id);
-		//        cmd.Parameters.AddWithValue("@parkID", park_id);
-
-		//        SqlDataReader reader = cmd.ExecuteReader();
-
-		//        while (reader.Read())
-		//        {
-		//            Reservation reservation = PopulateReservationFromReader(reader);
-
-		//            results.Add(reservation);
-		//        }
-		//    }
-
-		//    return results;
-		//}
-
-		//returns list of available sites based on dates and selected campground
-		public List<Site> AvailableSitesToReserve(int campground_id, string startDate, string endDate)
+        //returns List of available sites based on dates and selected campground 
+        public List<Site> AvailableSitesToReserve (int campground_id, string startDate, string endDate)
         {
-            List<Site> availableSitesList = new List<Site>();
+            List<Site> results = new List<Site>();
 
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
                 connection.Open();
 
                 SqlCommand cmd = new SqlCommand();
-                cmd.CommandText = "Select distinct campground.name, site.site_number ,site.site_id From site " +
-                                  "Join reservation on reservation.site_id = site.site_id " +
-                                  "Join campground on campground.campground_id = site.campground_id " +
-                                  "Where ((@startDate Not Between reservation.from_date and reservation.to_date) and " +
-                                  "(@endDate Not Between reservation.from_date and reservation.to_date)) " +
-                                  "And campground.campground_id = @campgroundID";
+                cmd.CommandText = "SELECT DISTINCT site.site_id, site.site_number, site.campground_id, " +
+                                  "site.accessible, site.max_occupancy, site.max_rv_length, site.utilities FROM site " +
+                                  "LEFT JOIN reservation ON reservation.site_id = site.site_id " +
+                                  "WHERE site.campground_id = @campgroundID " +
+                                  "EXCEPT " +
+                                  "SELECT DISTINCT site.site_id, site.site_number, site.campground_id, " +
+                                  "site.accessible, site.max_occupancy, site.max_rv_length, site.utilities FROM site " +
+                                  "LEFT JOIN reservation ON reservation.site_id = site.site_id " +
+                                  "WHERE site.campground_id = @campgroundID " +
+                                  "AND (@startDate BETWEEN reservation.from_date AND reservation.to_date " +
+                                  "OR @endDate BETWEEN reservation.from_date and reservation.to_date);";
+
                 cmd.Connection = connection;
                 cmd.Parameters.AddWithValue("@campgroundID", campground_id);
                 cmd.Parameters.AddWithValue("@startDate", startDate);
@@ -191,12 +134,11 @@ namespace NationalParkReservationSystem.DAL
                 {
                     Site site = PopulateAvailableSitesFromReader(reader);
 
-					availableSitesList.Add(site);
+                    results.Add(site);
                 }
-
             }
 
-                return availableSitesList;
+            return results;
         }
 
         public int AddReservation(int site_id, string from_date, string to_date, string reservationName)
@@ -210,18 +152,17 @@ namespace NationalParkReservationSystem.DAL
                     connection.Open();
 
                     SqlCommand cmd = new SqlCommand();
-                    cmd.CommandText = "INSERT INTO reservation (site_id, name, from_date, to_date) " +
-                                      "VALUES(@siteID, @name, @startDate, @endDate); " +
-                                      "SELECT CAST(scope_identity() AS int);";
-                    cmd.Connection = connection;
+					cmd.CommandText = "INSERT INTO reservation (site_id, name, from_date, to_date) " +
+									  "OUTPUT INSERTED.reservation_id " +
+									  "VALUES (@siteID, @name, @startDate, @endDate);";
+
+					cmd.Connection = connection;
                     cmd.Parameters.AddWithValue("@siteID", site_id);
                     cmd.Parameters.AddWithValue("@name", reservationName);
                     cmd.Parameters.AddWithValue("@startDate", from_date);
                     cmd.Parameters.AddWithValue("@endDate", to_date);
 
-                    record = cmd.ExecuteNonQuery();
-
-                    Console.WriteLine("Your reservation has been added.");
+					record = (int)cmd.ExecuteScalar();
                 }
             }
             catch (SqlException ex)
@@ -232,7 +173,70 @@ namespace NationalParkReservationSystem.DAL
             return record;
         }
 
-        private Park PopulateParkFromReader(SqlDataReader reader)
+		public List<Reservation> GetConfirmedReservationInfo(int reservation_id)
+		{
+			List<Reservation> output = new List<Reservation>();
+
+			using (SqlConnection connection = new SqlConnection(_connectionString))
+			{
+				connection.Open();
+
+				SqlCommand cmd = new SqlCommand();
+				cmd.CommandText = "SELECT * FROM reservation WHERE reservation_id = @reservationID;";
+
+				//sql query to return reservation confirmation including park and campground names
+				//cmd.CommandText = "SELECT reservation.reservation_id, reservation.name, reservation.from_date, " +
+								//	"reservation.to_date, reservation.create_date, site.site_number, campground.name, " +
+								//  "park.park_id FROM reservation " +
+								//  "JOIN site ON reservation.site_id = site.site_id " +
+								//  "JOIN campground ON site.campground_id = campground.campground_id " +
+								//  "JOIN park ON campground.park_id = park.park_id " +
+								//  "WHERE reservation.reservation_id = @reservationID;";
+
+				cmd.Connection = connection;
+				cmd.Parameters.AddWithValue("@reservationID", reservation_id);
+
+				SqlDataReader reader = cmd.ExecuteReader();
+
+				while (reader.Read())
+				{
+					Reservation reservation = PopulateReservationFromReader(reader);
+
+					output.Add(reservation);
+				}
+			}
+
+			return output;
+		}
+
+		public List<Reservation> GetReservationBySiteId(int site_id)
+		{
+			List<Reservation> output = new List<Reservation>();
+
+			using (SqlConnection connection = new SqlConnection(_connectionString))
+			{
+				connection.Open();
+
+				SqlCommand cmd = new SqlCommand();
+				cmd.CommandText = "SELECT * FROM reservation WHERE site_id = @siteID;";
+				cmd.Connection = connection;
+				cmd.Parameters.AddWithValue("@siteID", site_id);
+
+				SqlDataReader reader = cmd.ExecuteReader();
+
+				while (reader.Read())
+				{
+					Reservation reservation = PopulateReservationFromReader(reader);
+
+					output.Add(reservation);
+				}
+			}
+
+			return output;
+		}
+
+
+		private Park PopulateParkFromReader(SqlDataReader reader)
         {
             Park item = new Park();
 
@@ -275,24 +279,31 @@ namespace NationalParkReservationSystem.DAL
             return item;
         }
 
-        private Reservation PopulateReservationFromReader(SqlDataReader reader)
-        {
-            Reservation item = new Reservation();
+		private Reservation PopulateReservationFromReader(SqlDataReader reader)
+		{
+			Reservation item = new Reservation();
 
-            item.SiteId = Convert.ToInt32(reader["site_id"]);
-            item.ReservationName = Convert.ToString(reader["name"]);
-            item.StartReservationDate = Convert.ToDateTime(reader["from_date"]);
-            item.EndReservationDate = Convert.ToDateTime(reader["to_date"]);
+			item.ReservationId = Convert.ToInt32(reader["reservation_id"]);
+			item.SiteId = Convert.ToInt32(reader["site_id"]);
+			item.ReservationName = Convert.ToString(reader["name"]);
+			item.StartReservationDate = Convert.ToDateTime(reader["from_date"]);
+			item.EndReservationDate = Convert.ToDateTime(reader["to_date"]);
+			item.CreateReservationDate = Convert.ToDateTime(reader["create_date"]);
 
-            return item;
-        }
+			return item;
+		}
 
-        private Site PopulateAvailableSitesFromReader(SqlDataReader reader)
+		private Site PopulateAvailableSitesFromReader(SqlDataReader reader)
         {
             Site item = new Site();
 
             item.SiteId = Convert.ToInt32(reader["site_id"]);
             item.SiteNumber = Convert.ToInt32(reader["site_number"]);
+            item.CampgroundId = Convert.ToInt32(reader["campground_id"]);
+            item.Accessibility = Convert.ToBoolean(reader["accessible"]);
+            item.MaxOccupancy = Convert.ToInt32(reader["max_occupancy"]);
+            item.MaxRvLength = Convert.ToInt32(reader["max_rv_length"]);
+            item.Utilities = Convert.ToBoolean(reader["utilities"]);
 
             return item;
         }
